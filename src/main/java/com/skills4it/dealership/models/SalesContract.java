@@ -50,9 +50,16 @@ public class SalesContract extends Contract{
 
     @Override
     public String toCsvHeaderLine() {
-        return String.join("|", getContractDate()
-                , getCustomerName(), getCustomerEmail()
-                , Boolean.toString(isSold()), Double.toString(getTotalPrice())
-                , Double.toString(getMonthlyPayment()), Boolean.toString(isFinancing));
+        return String.join("|",
+                "Sale contract",
+                getContractDate(),
+                getCustomerName(),
+                getCustomerEmail(),
+                Boolean.toString(isSold()),
+                String.format("%.2f", getTotalPrice()),
+                String.format("%.2f", getMonthlyPayment()),
+                Boolean.toString(isFinancing),
+                ""
+        );
     }
 }

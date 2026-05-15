@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.nio.file.StandardOpenOption;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -19,6 +20,8 @@ public class DealershipFileManager {
     private static final Path INVENTORY_PATH = Path.of("src", "main", "resources", "inventory.csv");
     private static final Path CONTRACTS_PATH = Path.of("src", "main", "resources", "contracts.csv");
     private static final String DELIMITER = "\\|";
+    private static final String INVENTORY_FILENAME= "inventory";
+    private static final String CONTRACTS_FILENAME= "contracts";
 
     public Dealership getDealership() {
         ensureFileExists(INVENTORY_PATH);
@@ -53,7 +56,7 @@ public class DealershipFileManager {
 
     public void saveDealership(Dealership dealership) {
         ensureFileExists(INVENTORY_PATH);
-        createBackupFile(INVENTORY_PATH);
+        createBackupFile(INVENTORY_PATH, INVENTORY_FILENAME);
 
         try (BufferedWriter writer = Files.newBufferedWriter(INVENTORY_PATH)) {
             writer.write(dealership.toCsvHeaderLine());
@@ -98,33 +101,28 @@ public class DealershipFileManager {
         }
     }
 
-    private void createBackupFile(Path path) {
+    private void createBackupFile(Path path, String fileName) {
         try {
             Path backupDirectory = path.getParent().resolve("backups");
             Files.createDirectories(backupDirectory);
 
             String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss"));
-            Path backupPath = backupDirectory.resolve("inventory-" + timestamp + ".csv");
+            Path backupPath = backupDirectory.resolve(fileName +"-"+ timestamp + ".csv");
 
             Files.copy(path, backupPath, StandardCopyOption.REPLACE_EXISTING);
         } catch (IOException e) {
-            throw new IllegalStateException("Could not create inventory backup file.", e);
+            throw new IllegalStateException("Could not create "+fileName+" backup file.", e);
         }
     }
 
     public void saveContract(Contract contract) {
-//        ensureFileExists(CONTRACTS_PATH);
-        try {
-            if (!Files.exists(CONTRACTS_PATH)) {
-                Files.createFile(CONTRACTS_PATH);
-            }
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
 
-        createBackupFile(CONTRACTS_PATH);
 
-        try (BufferedWriter writer = Files.newBufferedWriter(CONTRACTS_PATH)) {
+        try (BufferedWriter writer = Files.newBufferedWriter(
+                CONTRACTS_PATH,
+                StandardOpenOption.CREATE,
+                StandardOpenOption.APPEND)) {
+            createBackupFile(CONTRACTS_PATH, CONTRACTS_FILENAME);
             writer.write(contract.toCsvHeaderLine());
 
             Vehicle vehicle = contract.getVehicle();

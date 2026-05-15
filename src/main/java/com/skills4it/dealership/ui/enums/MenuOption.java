@@ -15,6 +15,7 @@ public enum MenuOption {
     REMOVE_VEHICLE(9, "Remove a vehicle"),
     SALE_VEHICLE(10, "Sale vehicle contract"),
     LEASE_VEHICLE(11, "Lease vehicle contract"),
+    ADMIN(12, "Admin console"),
     QUIT(99, "Quit");
 
     private final int code;
