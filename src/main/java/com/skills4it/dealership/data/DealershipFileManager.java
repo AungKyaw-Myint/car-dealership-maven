@@ -1,8 +1,8 @@
 package com.skills4it.dealership.data;
 
-import com.skills4it.dealership.models.Dealership;
-import com.skills4it.dealership.models.Vehicle;
+import com.skills4it.dealership.models.*;
 import com.skills4it.dealership.models.enums.VehicleType;
+import com.skills4it.dealership.ui.enums.ContractOption;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -10,16 +10,21 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.nio.file.StandardOpenOption;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 
 public class DealershipFileManager {
     private static final Path INVENTORY_PATH = Path.of("src", "main", "resources", "inventory.csv");
+    private static final Path CONTRACTS_PATH = Path.of("src", "main", "resources", "contracts.csv");
     private static final String DELIMITER = "\\|";
+    private static final String INVENTORY_FILENAME= "inventory";
+    private static final String CONTRACTS_FILENAME= "contracts";
 
     public Dealership getDealership() {
-        ensureInventoryFileExists();
+        ensureFileExists(INVENTORY_PATH);
 
         try (BufferedReader reader = Files.newBufferedReader(INVENTORY_PATH)) {
             String dealershipLine = reader.readLine();
@@ -50,8 +55,8 @@ public class DealershipFileManager {
     }
 
     public void saveDealership(Dealership dealership) {
-        ensureInventoryFileExists();
-        createBackupFile();
+        ensureFileExists(INVENTORY_PATH);
+        createBackupFile(INVENTORY_PATH, INVENTORY_FILENAME);
 
         try (BufferedWriter writer = Files.newBufferedWriter(INVENTORY_PATH)) {
             writer.write(dealership.toCsvHeaderLine());
@@ -90,23 +95,103 @@ public class DealershipFileManager {
         }
     }
 
-    private void ensureInventoryFileExists() {
-        if (!Files.exists(INVENTORY_PATH)) {
-            throw new IllegalStateException("Inventory file not found at: " + INVENTORY_PATH.toAbsolutePath());
+    private void ensureFileExists(Path path) {
+        if (!Files.exists(path)) {
+            throw new IllegalStateException("File not found at: " + path.toAbsolutePath());
         }
     }
 
-    private void createBackupFile() {
+    private void createBackupFile(Path path, String fileName) {
         try {
-            Path backupDirectory = INVENTORY_PATH.getParent().resolve("backups");
+            Path backupDirectory = path.getParent().resolve("backups");
             Files.createDirectories(backupDirectory);
 
             String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss"));
-            Path backupPath = backupDirectory.resolve("inventory-" + timestamp + ".csv");
+            Path backupPath = backupDirectory.resolve(fileName +"-"+ timestamp + ".csv");
 
-            Files.copy(INVENTORY_PATH, backupPath, StandardCopyOption.REPLACE_EXISTING);
+            Files.copy(path, backupPath, StandardCopyOption.REPLACE_EXISTING);
         } catch (IOException e) {
-            throw new IllegalStateException("Could not create inventory backup file.", e);
+            throw new IllegalStateException("Could not create "+fileName+" backup file.", e);
+        }
+    }
+
+    public void saveContract(Contract contract) {
+
+
+        try (BufferedWriter writer = Files.newBufferedWriter(
+                CONTRACTS_PATH,
+                StandardOpenOption.CREATE,
+                StandardOpenOption.APPEND)) {
+            createBackupFile(CONTRACTS_PATH, CONTRACTS_FILENAME);
+            writer.write(contract.toCsvHeaderLine());
+
+            Vehicle vehicle = contract.getVehicle();
+            writer.write(vehicle.toCsvLine());
+            writer.newLine();
+        } catch (IOException e) {
+            throw new IllegalStateException("Could not save contract file: " + CONTRACTS_PATH, e);
+        }
+    }
+
+    public List<Contract> getContracts() {
+        ensureFileExists(CONTRACTS_PATH);
+
+        List<Contract> contracts = new ArrayList<>();
+
+        try (BufferedReader reader = Files.newBufferedReader(CONTRACTS_PATH)) {
+
+            String contractLine;
+
+            while ((contractLine = reader.readLine()) != null) {
+
+                if (contractLine.isBlank()) {
+                    continue;
+                }
+
+                String[] contractFields = contractLine.split(DELIMITER);
+
+                if (contractFields.length < 8) {
+                    throw new IllegalStateException("Invalid contract line: " + contractLine);
+                }
+
+                if (contractFields[0].equalsIgnoreCase(ContractOption.LEASE.toString())) {
+
+                    Contract lease = new LeaseContract(
+                            contractFields[1],
+                            contractFields[2],
+                            contractFields[3],
+                            Boolean.parseBoolean(contractFields[4]),
+                            Double.parseDouble(contractFields[5]),
+                            Double.parseDouble(contractFields[6]),
+                            new Vehicle(Integer.parseInt(contractFields[8]))
+                    );
+
+                    contracts.add(lease);
+
+                } else if (contractFields[0].equalsIgnoreCase(ContractOption.SALES.toString())) {
+
+                    Contract sale = new SalesContract(
+                            contractFields[1],
+                            contractFields[2],
+                            contractFields[3],
+                            Boolean.parseBoolean(contractFields[4]),
+                            Double.parseDouble(contractFields[5]),
+                            Double.parseDouble(contractFields[6]),
+                            new Vehicle(Integer.parseInt(contractFields[8])),
+                            Boolean.parseBoolean(contractFields[7])
+                    );
+
+                    contracts.add(sale);
+                }
+            }
+
+            return contracts;
+
+        } catch (IOException e) {
+            throw new IllegalStateException(
+                    "Could not read contract file: " + CONTRACTS_PATH,
+                    e
+            );
         }
     }
 }
