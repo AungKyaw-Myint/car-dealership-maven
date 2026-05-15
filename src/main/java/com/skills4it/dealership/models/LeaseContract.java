@@ -1,5 +1,7 @@
 package com.skills4it.dealership.models;
 
+import com.skills4it.dealership.ui.enums.ContractOption;
+
 public class LeaseContract extends Contract{
 
     private static final double ENDING_VALUE_RATE = 0.5;
@@ -7,6 +9,11 @@ public class LeaseContract extends Contract{
 
     public LeaseContract(String contractDate, String customerName, String customerEmail, boolean isSold, Vehicle vehicle) {
         super(contractDate, customerName, customerEmail, isSold, vehicle);
+    }
+
+
+    public LeaseContract(String contractDate, String customerName, String customerEmail, boolean isSold, double totalPrice, double monthlyPayment, Vehicle vehicle) {
+        super(contractDate, customerName, customerEmail, isSold, totalPrice, monthlyPayment, vehicle);
     }
 
     @Override
@@ -36,7 +43,7 @@ public class LeaseContract extends Contract{
     @Override
     public String toCsvHeaderLine() {
         return String.join("|",
-                "Lease contract",
+                ContractOption.LEASE.toString(),
                 getContractDate(),
                 getCustomerName(),
                 getCustomerEmail(),
@@ -47,4 +54,6 @@ public class LeaseContract extends Contract{
                 ""
         );
     }
+
+
 }

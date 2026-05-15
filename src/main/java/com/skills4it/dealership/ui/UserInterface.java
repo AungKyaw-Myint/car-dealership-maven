@@ -14,11 +14,16 @@ public class UserInterface {
     private final DealershipFileManager fileManager;
     private Dealership dealership;
     private Helper helper;
+    private AdminInterface adminInterface;
+
+    private static final String USERNAME= "admin";
+    private static final String PASSWORD= "123";
 
     public UserInterface() {
         this.scanner = new Scanner(System.in);
         this.fileManager = new DealershipFileManager();
         this.helper= new Helper();
+        adminInterface=new AdminInterface();
     }
 
     public void display() {
@@ -73,6 +78,7 @@ public class UserInterface {
             case REMOVE_VEHICLE -> processRemoveVehicleRequest();
             case SALE_VEHICLE -> saleVehicleRequest();
             case LEASE_VEHICLE -> leaseVehicleRequest();
+            case ADMIN -> adminRequest();
             case QUIT -> { }
         }
     }
@@ -191,6 +197,17 @@ public class UserInterface {
             return leaseContract;
         }
         return null;
+    }
+
+    private void adminRequest(){
+        String username = readRequiredString("Username: ");
+        String password = readRequiredString("Password: ");
+
+        if(username.equalsIgnoreCase(USERNAME) && password.equalsIgnoreCase(PASSWORD)){
+            adminInterface.display();
+        }else {
+            System.out.println("Authentication Failed.");
+        }
     }
 
 

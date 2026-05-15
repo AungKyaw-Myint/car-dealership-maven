@@ -1,9 +1,8 @@
 package com.skills4it.dealership.data;
 
-import com.skills4it.dealership.models.Contract;
-import com.skills4it.dealership.models.Dealership;
-import com.skills4it.dealership.models.Vehicle;
+import com.skills4it.dealership.models.*;
 import com.skills4it.dealership.models.enums.VehicleType;
+import com.skills4it.dealership.ui.enums.ContractOption;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -14,6 +13,7 @@ import java.nio.file.StandardCopyOption;
 import java.nio.file.StandardOpenOption;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 
 public class DealershipFileManager {
@@ -130,6 +130,68 @@ public class DealershipFileManager {
             writer.newLine();
         } catch (IOException e) {
             throw new IllegalStateException("Could not save contract file: " + CONTRACTS_PATH, e);
+        }
+    }
+
+    public List<Contract> getContracts() {
+        ensureFileExists(CONTRACTS_PATH);
+
+        List<Contract> contracts = new ArrayList<>();
+
+        try (BufferedReader reader = Files.newBufferedReader(CONTRACTS_PATH)) {
+
+            String contractLine;
+
+            while ((contractLine = reader.readLine()) != null) {
+
+                if (contractLine.isBlank()) {
+                    continue;
+                }
+
+                String[] contractFields = contractLine.split(DELIMITER);
+
+                if (contractFields.length < 8) {
+                    throw new IllegalStateException("Invalid contract line: " + contractLine);
+                }
+
+                if (contractFields[0].equalsIgnoreCase(ContractOption.LEASE.toString())) {
+
+                    Contract lease = new LeaseContract(
+                            contractFields[1],
+                            contractFields[2],
+                            contractFields[3],
+                            Boolean.parseBoolean(contractFields[4]),
+                            Double.parseDouble(contractFields[5]),
+                            Double.parseDouble(contractFields[6]),
+                            new Vehicle(Integer.parseInt(contractFields[8]))
+                    );
+
+                    contracts.add(lease);
+
+                } else if (contractFields[0].equalsIgnoreCase(ContractOption.SALES.toString())) {
+
+                    Contract sale = new SalesContract(
+                            contractFields[1],
+                            contractFields[2],
+                            contractFields[3],
+                            Boolean.parseBoolean(contractFields[4]),
+                            Double.parseDouble(contractFields[5]),
+                            Double.parseDouble(contractFields[6]),
+                            new Vehicle(Integer.parseInt(contractFields[8])),
+                            Boolean.parseBoolean(contractFields[7])
+                    );
+
+                    contracts.add(sale);
+                }
+            }
+
+            return contracts;
+
+        } catch (IOException e) {
+            throw new IllegalStateException(
+                    "Could not read contract file: " + CONTRACTS_PATH,
+                    e
+            );
         }
     }
 }

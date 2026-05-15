@@ -25,6 +25,10 @@ public class Vehicle {
         this.price = price;
     }
 
+    public Vehicle(int vin) {
+        this.vin = vin;
+    }
+
     public int getVin() {
         return vin;
     }

@@ -1,5 +1,7 @@
 package com.skills4it.dealership.models;
 
+import com.skills4it.dealership.ui.enums.ContractOption;
+
 public class SalesContract extends Contract{
 
     private static final double SALES_TAX_RATE = 0.05;
@@ -11,6 +13,11 @@ public class SalesContract extends Contract{
 
     public SalesContract(String contractDate, String customerName, String customerEmail, boolean isSold, boolean isFinancing, Vehicle vehicle) {
         super(contractDate, customerName, customerEmail, isSold, vehicle);
+        this.isFinancing = isFinancing;
+    }
+
+    public SalesContract(String contractDate, String customerName, String customerEmail, boolean isSold, double totalPrice, double monthlyPayment, Vehicle vehicle, boolean isFinancing) {
+        super(contractDate, customerName, customerEmail, isSold, totalPrice, monthlyPayment, vehicle);
         this.isFinancing = isFinancing;
     }
 
@@ -51,7 +58,7 @@ public class SalesContract extends Contract{
     @Override
     public String toCsvHeaderLine() {
         return String.join("|",
-                "Sale contract",
+                ContractOption.SALES.toString(),
                 getContractDate(),
                 getCustomerName(),
                 getCustomerEmail(),
