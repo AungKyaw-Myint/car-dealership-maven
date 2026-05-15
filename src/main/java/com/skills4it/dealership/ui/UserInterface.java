@@ -1,9 +1,9 @@
 package com.skills4it.dealership.ui;
 
 import com.skills4it.dealership.data.DealershipFileManager;
-import com.skills4it.dealership.models.Dealership;
-import com.skills4it.dealership.models.Vehicle;
+import com.skills4it.dealership.models.*;
 import com.skills4it.dealership.models.enums.VehicleType;
+import com.skills4it.dealership.ui.enums.ContractOption;
 import com.skills4it.dealership.ui.enums.MenuOption;
 
 import java.util.List;
@@ -13,10 +13,12 @@ public class UserInterface {
     private final Scanner scanner;
     private final DealershipFileManager fileManager;
     private Dealership dealership;
+    private Helper helper;
 
     public UserInterface() {
         this.scanner = new Scanner(System.in);
         this.fileManager = new DealershipFileManager();
+        this.helper= new Helper();
     }
 
     public void display() {
@@ -69,6 +71,8 @@ public class UserInterface {
             case LIST_ALL -> processAllVehiclesRequest();
             case ADD_VEHICLE -> processAddVehicleRequest();
             case REMOVE_VEHICLE -> processRemoveVehicleRequest();
+            case SALE_VEHICLE -> saleVehicleRequest();
+            case LEASE_VEHICLE -> leaseVehicleRequest();
             case QUIT -> { }
         }
     }
@@ -152,6 +156,44 @@ public class UserInterface {
             }
         }, () -> System.out.println("No vehicle found with VIN " + vin + "."));
     }
+
+    public void saleVehicleRequest(){
+        Contract contract=contractRequest(ContractOption.SALES);
+    }
+    public void leaseVehicleRequest(){
+        Contract contract=contractRequest(ContractOption.LEASE);
+    }
+
+    public Contract contractRequest(ContractOption option){
+        int vin = readPositiveInt("Enter VIN of vehicle: ");
+
+        Vehicle vehicle = dealership.findVehicleByVin(vin).orElse(null);
+
+        if (vehicle == null) {
+            System.out.println("Vehicle not found.");
+            contractRequest(option);
+        }
+
+        String contractDate = readRequiredString("Date of Contract: ");
+        String custName = readRequiredString("Customer Name: ");
+        String custEmail = readRequiredString("Customer Email: ");
+
+        if(option.equals(ContractOption.SALES)){
+            boolean isFinancing = helper.readBoolean("Is that Financing (y/n): ");
+            Contract salesContract=new SalesContract(contractDate,custName,custEmail,true,isFinancing,vehicle);
+
+            fileManager.saveContract(salesContract);
+            return salesContract;
+        }else if (option.equals(ContractOption.LEASE)){
+            Contract leaseContract=new LeaseContract(contractDate,custName,custEmail,true,vehicle);
+
+            fileManager.saveContract(leaseContract);
+            return leaseContract;
+        }
+        return null;
+    }
+
+
 
     private void displayVehicles(List<Vehicle> vehicles) {
         if (vehicles == null || vehicles.isEmpty()) {

@@ -32,4 +32,12 @@ public class LeaseContract extends Contract{
         return (loanAmount * monthlyInterestRate) /
                 (1 - Math.pow(1 + monthlyInterestRate, -months));
     }
+
+    @Override
+    public String toCsvHeaderLine() {
+        return String.join("|", getContractDate()
+                , getCustomerName(), getCustomerEmail()
+                , Boolean.toString(isSold()), Double.toString(getTotalPrice())
+                , Double.toString(getMonthlyPayment()), "");
+    }
 }

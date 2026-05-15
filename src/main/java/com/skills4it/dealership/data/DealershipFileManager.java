@@ -1,5 +1,6 @@
 package com.skills4it.dealership.data;
 
+import com.skills4it.dealership.models.Contract;
 import com.skills4it.dealership.models.Dealership;
 import com.skills4it.dealership.models.Vehicle;
 import com.skills4it.dealership.models.enums.VehicleType;
@@ -16,10 +17,11 @@ import java.util.List;
 
 public class DealershipFileManager {
     private static final Path INVENTORY_PATH = Path.of("src", "main", "resources", "inventory.csv");
+    private static final Path CONTRACTS_PATH = Path.of("src", "main", "resources", "contracts.csv");
     private static final String DELIMITER = "\\|";
 
     public Dealership getDealership() {
-        ensureInventoryFileExists();
+        ensureFileExists(INVENTORY_PATH);
 
         try (BufferedReader reader = Files.newBufferedReader(INVENTORY_PATH)) {
             String dealershipLine = reader.readLine();
@@ -50,8 +52,8 @@ public class DealershipFileManager {
     }
 
     public void saveDealership(Dealership dealership) {
-        ensureInventoryFileExists();
-        createBackupFile();
+        ensureFileExists(INVENTORY_PATH);
+        createBackupFile(INVENTORY_PATH);
 
         try (BufferedWriter writer = Files.newBufferedWriter(INVENTORY_PATH)) {
             writer.write(dealership.toCsvHeaderLine());
@@ -90,23 +92,46 @@ public class DealershipFileManager {
         }
     }
 
-    private void ensureInventoryFileExists() {
-        if (!Files.exists(INVENTORY_PATH)) {
-            throw new IllegalStateException("Inventory file not found at: " + INVENTORY_PATH.toAbsolutePath());
+    private void ensureFileExists(Path path) {
+        if (!Files.exists(path)) {
+            throw new IllegalStateException("File not found at: " + path.toAbsolutePath());
         }
     }
 
-    private void createBackupFile() {
+    private void createBackupFile(Path path) {
         try {
-            Path backupDirectory = INVENTORY_PATH.getParent().resolve("backups");
+            Path backupDirectory = path.getParent().resolve("backups");
             Files.createDirectories(backupDirectory);
 
             String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss"));
             Path backupPath = backupDirectory.resolve("inventory-" + timestamp + ".csv");
 
-            Files.copy(INVENTORY_PATH, backupPath, StandardCopyOption.REPLACE_EXISTING);
+            Files.copy(path, backupPath, StandardCopyOption.REPLACE_EXISTING);
         } catch (IOException e) {
             throw new IllegalStateException("Could not create inventory backup file.", e);
+        }
+    }
+
+    public void saveContract(Contract contract) {
+//        ensureFileExists(CONTRACTS_PATH);
+        try {
+            if (!Files.exists(CONTRACTS_PATH)) {
+                Files.createFile(CONTRACTS_PATH);
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+        createBackupFile(CONTRACTS_PATH);
+
+        try (BufferedWriter writer = Files.newBufferedWriter(CONTRACTS_PATH)) {
+            writer.write(contract.toCsvHeaderLine());
+
+            Vehicle vehicle = contract.getVehicle();
+            writer.write(vehicle.toCsvLine());
+            writer.newLine();
+        } catch (IOException e) {
+            throw new IllegalStateException("Could not save contract file: " + CONTRACTS_PATH, e);
         }
     }
 }

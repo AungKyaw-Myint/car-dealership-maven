@@ -13,6 +13,8 @@ public enum MenuOption {
     LIST_ALL(7, "List all vehicles"),
     ADD_VEHICLE(8, "Add a vehicle"),
     REMOVE_VEHICLE(9, "Remove a vehicle"),
+    SALE_VEHICLE(10, "Sale vehicle contract"),
+    LEASE_VEHICLE(11, "Lease vehicle contract"),
     QUIT(99, "Quit");
 
     private final int code;

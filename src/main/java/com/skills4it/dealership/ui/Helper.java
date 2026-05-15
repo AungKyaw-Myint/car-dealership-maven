@@ -5,12 +5,12 @@ import java.util.Scanner;
 public class Helper {
     private static final Scanner scanner = new Scanner(System.in);
 
-    private static String readString(String prompt) {
+    public static String readString(String prompt) {
         System.out.print(prompt);
         return scanner.nextLine().trim();
     }
 
-    private static String readRequiredString(String prompt) {
+    public static String readRequiredString(String prompt) {
         while (true) {
             String value = readString(prompt);
             if (!value.isBlank()) {
@@ -19,7 +19,7 @@ public class Helper {
             System.out.println("This field is required. Please try again.");
         }
     }
-    private double readPositiveDouble(String prompt) {
+    public double readPositiveDouble(String prompt) {
         while (true) {
             double number = readDouble(prompt);
             if (number >= 0) {
@@ -28,7 +28,7 @@ public class Helper {
             System.out.println("Please enter a positive number.");
         }
     }
-    private double readDouble(String prompt) {
+    public double readDouble(String prompt) {
         while (true) {
             System.out.print(prompt);
             String input = scanner.nextLine().trim();
@@ -40,7 +40,7 @@ public class Helper {
             }
         }
     }
-    private int readYear(String prompt) {
+    public int readYear(String prompt) {
         while (true) {
             int year = readInt(prompt);
             if (year >= 1886 && year <= 2100) {
@@ -49,7 +49,7 @@ public class Helper {
             System.out.println("Please enter a realistic vehicle year between 1886 and 2100.");
         }
     }
-    private int readInt(String prompt) {
+    public int readInt(String prompt) {
         while (true) {
             System.out.print(prompt);
             String input = scanner.nextLine().trim();
@@ -61,13 +61,25 @@ public class Helper {
             }
         }
     }
-    private int readPositiveInt(String prompt) {
+    public int readPositiveInt(String prompt) {
         while (true) {
             int number = readInt(prompt);
             if (number >= 0) {
                 return number;
             }
             System.out.println("Please enter a positive number.");
+        }
+    }
+    public boolean readBoolean(String prompt){
+
+        while (true) {
+            String value = readString(prompt);
+            if (!value.isBlank() && value.equalsIgnoreCase("y")) {
+                return true;
+            }else if (!value.isBlank() && value.equalsIgnoreCase("n")){
+                return false;
+            }
+            System.out.println("Please try again (y/n)!.");
         }
     }
 
